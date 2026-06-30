@@ -93,15 +93,17 @@ export default function BookingModal({
                 const sid = slot.studentIds[i];
                 const s = sid ? students.find(stu => stu.id === sid) : null;
                 return (
-                  <div 
-                    key={i} 
-                    className={`flex-1 h-12 rounded-lg border-2 flex items-center justify-center font-bold text-xs relative group ${
-                      s ? 'border-transparent text-slate-800 shadow-sm' : 'border-dashed border-slate-300 bg-slate-50 text-slate-400'
-                    }`}
-                    style={s ? { backgroundColor: getBackgroundColor(s.labelId) } : {}}
-                    title={s ? s.name : 'Kosong'}
-                  >
-                    {s ? (s.status === 'CG' ? 'CG' : s.nickname.substring(0, 3)) : '+'}
+                    <div 
+                      key={i} 
+                      className={`flex-1 h-12 rounded-lg border-2 flex items-center justify-center font-bold text-xs relative group px-1 ${
+                        s ? 'border-transparent text-slate-800 shadow-sm' : 'border-dashed border-slate-300 bg-slate-50 text-slate-400'
+                      }`}
+                      style={s ? { backgroundColor: getBackgroundColor(s.labelId) } : {}}
+                      title={s ? s.name : 'Kosong'}
+                    >
+                      <span className="truncate max-w-full">
+                        {s ? (s.status === 'CG' ? `(CG) ${s.nickname}` : s.nickname) : '+'}
+                      </span>
                     {s && (
                       <button 
                         onClick={() => onRemoveStudent(s.id, slot.id)}

@@ -7,6 +7,15 @@ export default function ScheduleMatrix({ scheduleSlots, selectedClassId, branchI
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [sourceStudent, setSourceStudent] = useState(null);
   const [sourceSlotId, setSourceSlotId] = useState(null);
+  const [expandedSlots, setExpandedSlots] = useState({});
+
+  const toggleExpand = (slotId, e) => {
+    e.stopPropagation();
+    setExpandedSlots(prev => ({
+      ...prev,
+      [slotId]: !prev[slotId]
+    }));
+  };
 
   const getSlot = (dateString, time) => {
     const id = `${branchId}-${dateString}-${time}-${selectedClassId}`;
@@ -76,6 +85,24 @@ export default function ScheduleMatrix({ scheduleSlots, selectedClassId, branchI
 
   const DAYS_HEADER = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
+  // Helpe colors
+  const getBackgroundColor = (labelId) => {
+    const label = getLabelInfo(labelId);
+    return label ? label.colorHex : '#ffffff';
+  };
+  const getTextColor = (hexColor) => {
+    if (!hexColor || hexColor === '#ffffff') return 'text-slate-800';
+    const darkColors = ['#1B5E20', '#0D47A1', '#B71C1C', '#4A148C'];
+    return darkColors.includes(hexColor) ? 'text-white' : 'text-slate-800';
+  };
+
+  const formatDateFull = (dateStr) => {
+    if (!dateStr) return '';
+    const [y, m, d] = dateStr.split('-');
+    const months = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    return `${parseInt(d, 10)} ${months[parseInt(m, 10) - 1]} ${y}`;
+  };
+
   return (
     <div className="relative">
       {sourceStudent && (
@@ -120,8 +147,8 @@ export default function ScheduleMatrix({ scheduleSlots, selectedClassId, branchI
                     return (
                       <td key={dateObj.dateString} className={`border-l border-slate-200 first:border-0 p-2 align-top h-32 ${isWeekend ? 'bg-slate-50' : 'bg-white'}`}>
                         <div className="flex flex-col h-full">
-                          <div className={`text-right font-bold text-sm mb-2 ${isWeekend ? 'text-slate-400' : 'text-slate-700'}`}>
-                            {parseInt(dateObj.dateString.split('-')[2], 10)}
+                          <div className={`text-right font-bold text-[11px] mb-2 ${isWeekend ? 'text-slate-400' : 'text-slate-700'}`}>
+                            {formatDateFull(dateObj.dateString)}
                           </div>
                           
                           <div className="flex-1 space-y-1 overflow-y-auto">
@@ -129,6 +156,7 @@ export default function ScheduleMatrix({ scheduleSlots, selectedClassId, branchI
                               const slot = getSlot(dateObj.dateString, time);
                               const isFull = slot.studentIds.length >= maxQuota;
                               const isEmpty = slot.studentIds.length === 0;
+                              const isExpanded = !!expandedSlots[slot.id];
                               
                               let swapHighlightClass = "";
                               if (sourceStudent) {
@@ -155,17 +183,47 @@ export default function ScheduleMatrix({ scheduleSlots, selectedClassId, branchI
                               }
 
                               return (
-                                <button
-                                  key={time}
-                                  onClick={() => handleSlotClick(slot)}
-                                  className={`w-full text-left text-[10px] font-semibold px-1.5 py-1 rounded flex justify-between items-center transition-colors ${swapHighlightClass}`}
-                                >
-                                  <span>{time.split(' - ')[0]}</span>
-                                  <span className="flex items-center space-x-1">
-                                    <span>{slot.studentIds.length}/{maxQuota}</span>
-                                    {isFull && <Lock className="w-2.5 h-2.5" />}
-                                  </span>
-                                </button>
+                                <div key={time} className="mb-1 last:mb-0">
+                                  <button
+                                    onClick={(e) => toggleExpand(slot.id, e)}
+                                    className={`w-full text-left text-[10px] font-semibold px-1.5 py-1 rounded flex justify-between items-center transition-colors ${swapHighlightClass}`}
+                                  >
+                                    <span>{time.split(' - ')[0]}</span>
+                                    <span className="flex items-center space-x-1">
+                                      <span>{slot.studentIds.length}/{maxQuota}</span>
+                                      {isFull && <Lock className="w-2.5 h-2.5" />}
+                                    </span>
+                                  </button>
+
+                                  {isExpanded && (
+                                    <div className="mt-1 pl-1 pr-1 pb-1 space-y-1">
+                                      {slot.studentIds.length > 0 ? (
+                                        slot.studentIds.map(sid => {
+                                          const s = students.find(stu => stu.id === sid);
+                                          if (!s) return null;
+                                          const bgColor = getBackgroundColor(s.labelId);
+                                          const textColor = getTextColor(bgColor);
+                                          return (
+                                            <div key={s.id} className="rounded px-1.5 py-0.5 text-[9px] font-bold shadow-sm flex items-center" style={{ backgroundColor: bgColor }}>
+                                              <span className={`truncate ${textColor}`}>
+                                                {s.status === 'CG' ? `(CG) ${s.nickname}` : s.nickname}
+                                              </span>
+                                            </div>
+                                          );
+                                        })
+                                      ) : (
+                                        <div className="text-[9px] text-slate-400 italic px-1">Kosong</div>
+                                      )}
+                                      
+                                      <button
+                                        onClick={() => handleSlotClick(slot)}
+                                        className="w-full text-[9px] py-1 mt-1 border border-dashed border-blue-300 text-blue-600 rounded hover:bg-blue-50 flex items-center justify-center font-bold transition-colors"
+                                      >
+                                        Kelola
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
                               );
                             })}
                           </div>
