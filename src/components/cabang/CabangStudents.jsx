@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react';
+﻿import React, { useState, useContext } from 'react';
 import { AppContext } from '../../App';
 import { Search, Edit2, X, Check, CheckCircle } from 'lucide-react';
 
@@ -6,7 +6,8 @@ export default function CabangStudents({ branchId }) {
   const { students, setStudents, labels } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState('');
   
-  const branchStudents = students.filter(s => s.branchId === branchId);
+  // Exclude inactive students from the main view
+  const branchStudents = students.filter(s => s.branchId === branchId && s.status !== 'INACTIVE');
   const branchLabels = labels.filter(l => l.branchId === branchId);
 
   const filteredStudents = branchStudents.filter(s => 
@@ -70,7 +71,7 @@ export default function CabangStudents({ branchId }) {
                   <div>
                     <h3 className="font-bold text-slate-800">{student.name} ({student.nickname})</h3>
                     <p className="text-xs text-slate-500 mt-1">
-                      {student.age || '-'} • {student.phone || '-'}
+                      {student.joinDate ? `Daftar: ${student.joinDate} • ` : ''}{student.age || '-'} • {student.phone || '-'}
                     </p>
                     <p className="text-xs text-slate-500 mt-0.5 truncate max-w-[200px]">{student.address || '-'}</p>
                   </div>
@@ -133,6 +134,9 @@ export default function CabangStudents({ branchId }) {
                         <h3 className={`font-bold ${textColor}`}>{student.name}</h3>
                         <p className={`text-xs opacity-80 ${textColor} mt-0.5 font-medium`}>
                           {label ? `${label.mainLevel} - ${label.subLevel}` : 'Tanpa Level'}
+                        </p>
+                        <p className={`text-xs opacity-70 ${textColor} mt-1`}>
+                          {student.joinDate ? `Daftar: ${student.joinDate}` : ''}
                         </p>
                       </div>
                       <button 

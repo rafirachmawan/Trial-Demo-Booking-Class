@@ -1,6 +1,24 @@
-import React, { useState, useContext } from 'react';
+﻿import React, { useState, useContext } from 'react';
 import { AppContext } from '../../App';
 import { Tag, BookOpen, Trash2, Plus } from 'lucide-react';
+
+const PREDEFINED_COLORS = [
+  { name: "Hijau Terang", hex: "#98FB98" },
+  { name: "Hijau", hex: "#4DBD74" },
+  { name: "Hijau Gelap", hex: "#1B5E20" },
+  { name: "Krem", hex: "#FFF9C4" },
+  { name: "Kuning", hex: "#FFEB3B" },
+  { name: "Oranye", hex: "#FF9800" },
+  { name: "Biru Muda", hex: "#E3F2FD" },
+  { name: "Biru", hex: "#2196F3" },
+  { name: "Navy", hex: "#0D47A1" },
+  { name: "Pink Muda", hex: "#FCE4EC" },
+  { name: "Pink Fanta", hex: "#E91E63" },
+  { name: "Merah", hex: "#B71C1C" },
+  { name: "Ungu Muda", hex: "#E1BEE7" },
+  { name: "Ungu", hex: "#9C27B0" },
+  { name: "Ungu Tua", hex: "#4A148C" },
+];
 
 export default function CabangMasterData({ branchId }) {
   const { labels, setLabels, classes, addClass } = useContext(AppContext);
@@ -11,7 +29,7 @@ export default function CabangMasterData({ branchId }) {
   // States for new label
   const [newMainLevel, setNewMainLevel] = useState('');
   const [newSubLevel, setNewSubLevel] = useState('');
-  const [newColor, setNewColor] = useState('#2196F3');
+  const [newColor, setNewColor] = useState(PREDEFINED_COLORS[0].hex);
 
   // States for new class
   const [newClassName, setNewClassName] = useState('');
@@ -47,8 +65,6 @@ export default function CabangMasterData({ branchId }) {
   };
 
   const handleDeleteClass = (id) => {
-    // Note: Should also delete slots, simplified for demo
-    // setClasses(classes.filter(c => c.id !== id));
     alert("Hapus kelas belum diimplementasi penuh karena ada relasi dengan slot jadwal.");
   };
 
@@ -118,12 +134,18 @@ export default function CabangMasterData({ branchId }) {
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <input 
-                  type="color" value={newColor} onChange={e => setNewColor(e.target.value)}
-                  className="w-10 h-10 rounded cursor-pointer"
-                />
+                <div className="w-10 h-10 rounded shadow-sm border border-black/10 shrink-0" style={{ backgroundColor: newColor }}></div>
+                <select 
+                  value={newColor} 
+                  onChange={e => setNewColor(e.target.value)}
+                  className="w-1/3 p-2 border rounded-lg text-sm bg-white outline-none focus:border-amber-400"
+                >
+                  {PREDEFINED_COLORS.map(c => (
+                    <option key={c.hex} value={c.hex}>{c.name}</option>
+                  ))}
+                </select>
                 <button type="submit" className="flex-1 py-2 bg-amber-500 text-white font-bold rounded-lg hover:bg-amber-600 text-sm">
-                  Tambah Label Baru
+                  Tambah
                 </button>
               </div>
             </form>

@@ -1,6 +1,6 @@
-import React, { useState, useContext } from 'react';
+﻿import React, { useState, useContext } from 'react';
 import { AppContext } from '../../App';
-import { Search, Calendar, Clock, BookOpen, Plus, X, CheckCircle, Trash2 } from 'lucide-react';
+import { Search, Calendar, Clock, BookOpen, Plus, X, CheckCircle, Trash2, PowerOff } from 'lucide-react';
 
 export default function CabangStudentManage({ branchId }) {
   const { students, labels, classes, scheduleSlots, setScheduleSlots, TIME_SLOTS } = useContext(AppContext);
@@ -16,10 +16,10 @@ export default function CabangStudentManage({ branchId }) {
   const branchClasses = classes.filter(c => c.branchId === branchId);
   const branchLabels = labels.filter(l => l.branchId === branchId);
 
-  const filteredStudents = branchStudents.filter(s =>
+  const filteredStudents = branchStudents.filter(s => s.status !== 'INACTIVE' && (
     s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     s.nickname.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ));
 
   const selectedStudent = branchStudents.find(s => s.id === selectedStudentId);
   const getLabelInfo = (labelId) => branchLabels.find(l => l.id === labelId);
@@ -28,6 +28,15 @@ export default function CabangStudentManage({ branchId }) {
     if (!hexColor || hexColor === '#ffffff') return 'text-slate-800';
     return ['#1B5E20', '#0D47A1', '#B71C1C', '#4A148C'].includes(hexColor) ? 'text-white' : 'text-slate-800';
   };
+  const { setStudents } = useContext(AppContext);
+
+  const handleDeactivateStudent = (id) => {
+    if(window.confirm('Yakin ingin menonaktifkan siswa ini? Siswa ini tidak akan muncul lagi di daftar.')) {
+      setStudents(prev => prev.map(s => s.id === id ? { ...s, status: 'INACTIVE' } : s));
+      if (selectedStudentId === id) setSelectedStudentId(null);
+    }
+  };
+
   const getStudentSchedule = (studentId) => {
     const entries = [];
     Object.values(scheduleSlots).forEach(slot => {
@@ -192,7 +201,15 @@ export default function CabangStudentManage({ branchId }) {
                       {selectedStudent.phone ? ` \u2022 ${selectedStudent.phone}` : ''}
                     </p>
                   </div>
-                  {(() => { const l = getLabelInfo(selectedStudent.labelId); return l ? <div className="w-8 h-8 rounded-full shadow-sm border border-black/10" style={{ backgroundColor: l.colorHex }} /> : null; })()}
+                  <div className="flex items-center space-x-3">
+                    <button 
+                      onClick={() => handleDeactivateStudent(selectedStudent.id)}
+                      className="flex items-center text-xs font-bold text-red-500 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-lg border border-red-200 transition-colors"
+                    >
+                      <PowerOff className="w-3.5 h-3.5 mr-1.5" /> Nonaktifkan
+                    </button>
+                    {(() => { const l = getLabelInfo(selectedStudent.labelId); return l ? <div className="w-8 h-8 rounded-full shadow-sm border border-black/10" style={{ backgroundColor: l.colorHex }} /> : null; })()}
+                  </div>
                 </div>
               </div>
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">

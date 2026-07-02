@@ -89,7 +89,7 @@ export default function CabangDashboard({ overrideBranchId, onBack }) {
             }`}
           >
             <UserPlus className="w-4 h-4" />
-            <span>Form Coba Gratis (CG)</span>
+            <span>Pendaftaran Siswa Baru</span>
           </button>
           
           <div className="my-2 border-t border-slate-100"></div>

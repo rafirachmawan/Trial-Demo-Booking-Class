@@ -1,23 +1,17 @@
-import React, { useState, useContext } from 'react';
+﻿import React, { useState, useContext } from 'react';
 import { AppContext } from '../../App';
-import { FileText, Copy, CheckCircle } from 'lucide-react';
+import { FileText, Copy, CheckCircle, UserPlus, Award } from 'lucide-react';
 
 export default function CabangCgForm({ branchId, onSuccess }) {
   const { students, setStudents } = useContext(AppContext);
   const [waText, setWaText] = useState('');
+  const [registerType, setRegisterType] = useState('CG');
   
   const [formData, setFormData] = useState({
-    name: '',
-    nickname: '',
-    dob: '',
-    age: '',
-    phone: '',
-    address: '',
-    school: ''
+    name: '', nickname: '', joinDate: '', dob: '', age: '', phone: '', address: '', school: ''
   });
 
   const handleParseWA = () => {
-    // Simple parser assuming typical format
     const lines = waText.split('\n');
     const newForm = { ...formData };
     
@@ -27,11 +21,13 @@ export default function CabangCgForm({ branchId, onSuccess }) {
         newForm.name = line.split(':')[1]?.trim() || '';
       } else if (lowerLine.includes('nama panggilan')) {
         newForm.nickname = line.split(':')[1]?.trim() || '';
+      } else if (lowerLine.includes('tanggal pendaftaran') || lowerLine.includes('tanggal daftar')) {
+        newForm.joinDate = line.split(':')[1]?.trim() || '';
       } else if (lowerLine.includes('tanggal lahir anak') || lowerLine.includes('tanggal lahir')) {
         newForm.dob = line.split(':')[1]?.trim() || '';
       } else if (lowerLine.includes('usia')) {
         newForm.age = line.split(':')[1]?.trim() || '';
-      } else if (lowerLine.includes('no hp')) {
+      } else if (lowerLine.includes('no hp') || lowerLine.includes('nomor whatsapp')) {
         newForm.phone = line.split(':')[1]?.trim() || '';
       } else if (lowerLine.includes('alamat')) {
         newForm.address = line.split(':')[1]?.trim() || '';
@@ -39,24 +35,21 @@ export default function CabangCgForm({ branchId, onSuccess }) {
         newForm.school = line.split(':')[1]?.trim() || '';
       }
     });
-    
     setFormData(newForm);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!formData.name) {
-      alert("Nama lengkap anak wajib diisi!");
-      return;
-    }
+    if (!formData.name) { alert("Nama lengkap anak wajib diisi!"); return; }
 
     const newStudent = {
       id: 's' + Date.now(),
       branchId: branchId,
       name: formData.name,
       nickname: formData.nickname,
-      status: 'CG', // Status is Coba Gratis
-      labelId: null, // No label yet
+      status: registerType === 'CG' ? 'CG' : 'REGISTERED',
+      labelId: null,
+      joinDate: formData.joinDate,
       dob: formData.dob,
       age: formData.age,
       phone: formData.phone,
@@ -65,21 +58,41 @@ export default function CabangCgForm({ branchId, onSuccess }) {
     };
 
     setStudents([...students, newStudent]);
-    alert("Berhasil mendaftarkan anak sebagai Coba Gratis (CG)!");
+    alert(`Berhasil mendaftarkan anak sebagai ${registerType === 'CG' ? 'Coba Gratis (CG)' : 'Siswa Tetap'}!`);
     onSuccess();
   };
 
   return (
     <div className="p-8 max-w-4xl mx-auto">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-800">Pendaftaran Coba Gratis (CG)</h1>
-        <p className="text-slate-500">Daftarkan anak untuk jadwal trial sebelum mendapatkan level permanen.</p>
+        <h1 className="text-2xl font-bold text-slate-800">Pendaftaran Siswa Baru</h1>
+        <p className="text-slate-500">Daftarkan anak sebagai Coba Gratis (CG) atau langsung sebagai Siswa Tetap.</p>
+      </div>
+
+      <div className="flex space-x-4 mb-8">
+        <button
+          onClick={() => setRegisterType('CG')}
+          className={`flex-1 py-4 flex items-center justify-center space-x-2 rounded-xl font-bold transition-all border-2 ${
+            registerType === 'CG' ? 'bg-green-50 border-green-500 text-green-700 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:border-green-200 hover:bg-green-50/50'
+          }`}
+        >
+          <UserPlus className="w-5 h-5" />
+          <span>Siswa Coba Gratis (CG)</span>
+        </button>
+        <button
+          onClick={() => setRegisterType('REGULAR')}
+          className={`flex-1 py-4 flex items-center justify-center space-x-2 rounded-xl font-bold transition-all border-2 ${
+            registerType === 'REGULAR' ? 'bg-blue-50 border-blue-500 text-blue-700 shadow-sm' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-200 hover:bg-blue-50/50'
+          }`}
+        >
+          <Award className="w-5 h-5" />
+          <span>Siswa Tetap (Reguler)</span>
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Paste Area */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
-          <div className="flex items-center space-x-2 mb-4 text-green-600 font-bold">
+          <div className="flex items-center space-x-2 mb-4 text-emerald-600 font-bold">
             <Copy className="w-5 h-5" />
             <h2>Copy-Paste dari WhatsApp</h2>
           </div>
@@ -89,8 +102,9 @@ export default function CabangCgForm({ branchId, onSuccess }) {
           <textarea
             value={waText}
             onChange={(e) => setWaText(e.target.value)}
-            className="w-full h-64 p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-green-500 outline-none resize-none"
+            className="w-full h-72 p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm font-mono focus:ring-2 focus:ring-emerald-500 outline-none resize-none"
             placeholder={`Data Anak
+Tanggal Pendaftaran : 12 Agustus 2026
 Nama Lengkap anak : Shanaya Zida Najma
 Nama panggilan : Naya
 Tanggal lahir anak : 07 agustus 2023
@@ -108,14 +122,18 @@ Sekolah : `}
           </button>
         </div>
 
-        {/* Form Area */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-5">
           <div className="flex items-center space-x-2 mb-6 text-blue-600 font-bold">
             <FileText className="w-5 h-5" />
-            <h2>Detail Form CG</h2>
+            <h2>Detail Form Pendaftaran</h2>
           </div>
           
           <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Tanggal Daftar</label>
+              <input type="text" value={formData.joinDate} onChange={e => setFormData({...formData, joinDate: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg bg-white text-sm focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Misal: 12 Agustus 2026" />
+            </div>
+
             <div>
               <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nama Lengkap</label>
               <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full p-2 border border-slate-200 rounded-lg bg-slate-50 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
@@ -154,9 +172,11 @@ Sekolah : `}
             </div>
 
             <div className="pt-4 mt-4 border-t border-slate-100">
-              <button type="submit" className="w-full flex justify-center items-center py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-bold transition-colors shadow-sm">
+              <button type="submit" className={`w-full flex justify-center items-center py-3 text-white rounded-lg font-bold transition-colors shadow-sm ${
+                registerType === 'CG' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'
+              }`}>
                 <CheckCircle className="w-5 h-5 mr-2" />
-                Simpan Sebagai Siswa CG
+                Simpan Sebagai Siswa {registerType === 'CG' ? 'CG' : 'Tetap'}
               </button>
             </div>
           </form>
