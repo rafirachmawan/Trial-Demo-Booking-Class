@@ -1,15 +1,8 @@
-import React, { useState, useContext } from 'react';
+﻿import React, { useState, useContext } from 'react';
 import { AppContext } from '../../App';
 import ScheduleMatrix from '../ScheduleMatrix';
-import { getCalendarGrid } from '../../utils/dateUtils';
-import { Calendar as CalendarIcon } from 'lucide-react';
-
-const MONTHS_OPTIONS = [
-  "Januari", "Februari", "Maret", "April", "Mei", "Juni", 
-  "Juli", "Agustus", "September", "Oktober", "November", "Desember"
-];
-
-const YEAR_OPTIONS = [2024, 2025, 2026, 2027];
+import { getStartOfWeek, getWeeklyCalendarGrid, formatDateRange } from '../../utils/dateUtils';
+import { Calendar as CalendarIcon, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export default function CabangSchedule({ branchId }) {
   const { classes, scheduleSlots, setScheduleSlots, students, labels } = useContext(AppContext);
@@ -17,12 +10,11 @@ export default function CabangSchedule({ branchId }) {
   const branchClasses = classes.filter(c => c.branchId === branchId);
   const [selectedClassId, setSelectedClassId] = useState(branchClasses.length > 0 ? branchClasses[0].id : null);
   
-  // Date State (Month and Year)
+  // Date State (Weekly)
   const today = new Date();
-  const [currentMonth, setCurrentMonth] = useState(today.getMonth());
-  const [currentYear, setCurrentYear] = useState(today.getFullYear());
+  const [currentWeekStart, setCurrentWeekStart] = useState(getStartOfWeek(today));
   
-  const calendarGrid = getCalendarGrid(currentYear, currentMonth);
+  const calendarGrid = getWeeklyCalendarGrid(currentWeekStart);
 
   // We need to pass populated students and labels to Matrix
   const branchStudents = students.filter(s => s.branchId === branchId);
@@ -42,8 +34,7 @@ export default function CabangSchedule({ branchId }) {
       }
       
       if (!newSlots[targetSlotId]) {
-        // Create slot dynamically
-        const dateObj = calendarGrid.flat().find(d => d && d.dateString === targetDate);
+        const dateObj = calendarGrid[0].find(d => d.dateString === targetDate);
         newSlots[targetSlotId] = {
           id: targetSlotId,
           branchId,
@@ -85,40 +76,53 @@ export default function CabangSchedule({ branchId }) {
     return <div className="p-8 text-center text-slate-500">Belum ada kelas di cabang ini. Silakan buat di Master Data.</div>;
   }
 
-  const handleThisMonth = () => {
-    const d = new Date();
-    setCurrentMonth(d.getMonth());
-    setCurrentYear(d.getFullYear());
+  const handleThisWeek = () => {
+    setCurrentWeekStart(getStartOfWeek(new Date()));
   };
+
+  const handlePrevWeek = () => {
+    const prev = new Date(currentWeekStart);
+    prev.setDate(prev.getDate() - 7);
+    setCurrentWeekStart(prev);
+  };
+
+  const handleNextWeek = () => {
+    const next = new Date(currentWeekStart);
+    next.setDate(next.getDate() + 7);
+    setCurrentWeekStart(next);
+  };
+
+  // Calculate End of Week (Sunday) for range display
+  const currentWeekEnd = new Date(currentWeekStart);
+  currentWeekEnd.setDate(currentWeekEnd.getDate() + 6);
+  const dateRangeStr = formatDateRange(currentWeekStart, currentWeekEnd);
 
   return (
     <div className="p-6 h-full flex flex-col">
       <div className="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center shrink-0 space-y-4 md:space-y-0">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Matriks Jadwal Bulanan</h1>
-          <p className="text-slate-500 text-sm">Visualisasi jadwal kelas dan kuota siswa bulan ini</p>
+          <h1 className="text-2xl font-bold text-slate-800">Matriks Jadwal Mingguan</h1>
+          <p className="text-slate-500 text-sm">Visualisasi jadwal kelas dan kuota siswa</p>
         </div>
         
         <div className="flex flex-col items-end space-y-3">
-          {/* Month/Year Navigation */}
+          {/* Week Navigation */}
           <div className="flex items-center space-x-2 bg-white rounded-lg border border-slate-200 p-1.5 shadow-sm">
-            <select 
-              value={currentMonth} 
-              onChange={e => setCurrentMonth(parseInt(e.target.value))}
-              className="p-1.5 bg-transparent font-bold text-slate-700 outline-none cursor-pointer"
-            >
-              {MONTHS_OPTIONS.map((m, i) => <option key={i} value={i}>{m}</option>)}
-            </select>
-            <select 
-              value={currentYear} 
-              onChange={e => setCurrentYear(parseInt(e.target.value))}
-              className="p-1.5 bg-transparent font-bold text-slate-700 outline-none cursor-pointer border-l border-slate-200"
-            >
-              {YEAR_OPTIONS.map(y => <option key={y} value={y}>{y}</option>)}
-            </select>
-            <button onClick={handleThisMonth} className="px-3 py-1.5 ml-1 text-sm font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded transition-colors flex items-center border border-slate-200">
-              <CalendarIcon className="w-4 h-4 mr-1.5" />
-              Bulan Ini
+            <button onClick={handlePrevWeek} className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition-colors">
+              <ChevronLeft className="w-5 h-5" />
+            </button>
+            
+            <div className="px-4 py-1 text-sm font-bold text-slate-800 min-w-[200px] text-center flex items-center justify-center">
+              <CalendarIcon className="w-4 h-4 mr-2 text-blue-600" />
+              {dateRangeStr}
+            </div>
+
+            <button onClick={handleNextWeek} className="p-1.5 hover:bg-slate-100 rounded text-slate-600 transition-colors">
+              <ChevronRight className="w-5 h-5" />
+            </button>
+            
+            <button onClick={handleThisWeek} className="px-3 py-1.5 ml-2 text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 rounded transition-colors border border-slate-200">
+              Minggu Ini
             </button>
           </div>
 

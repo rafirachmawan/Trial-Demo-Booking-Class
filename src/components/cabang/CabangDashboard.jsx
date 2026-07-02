@@ -1,10 +1,11 @@
 import React, { useState, useContext } from 'react';
 import { AppContext } from '../../App';
-import { Calendar, Users, Settings, UserPlus } from 'lucide-react';
+import { Calendar, Users, Settings, UserPlus, ClipboardList } from 'lucide-react';
 import CabangSchedule from './CabangSchedule';
 import CabangMasterData from './CabangMasterData';
 import CabangStudents from './CabangStudents';
 import CabangCgForm from './CabangCgForm';
+import CabangStudentManage from './CabangStudentManage';
 
 export default function CabangDashboard({ overrideBranchId, onBack }) {
   const { currentUser, branches } = useContext(AppContext);
@@ -22,6 +23,7 @@ export default function CabangDashboard({ overrideBranchId, onBack }) {
       case 'schedule': return <CabangSchedule branchId={branch.id} />;
       case 'students': return <CabangStudents branchId={branch.id} />;
       case 'cg_form': return <CabangCgForm branchId={branch.id} onSuccess={() => setActiveTab('students')} />;
+      case 'manage': return <CabangStudentManage branchId={branch.id} />;
       case 'master': return <CabangMasterData branchId={branch.id} />;
       default: return null;
     }
@@ -68,6 +70,16 @@ export default function CabangDashboard({ overrideBranchId, onBack }) {
           >
             <Users className="w-4 h-4" />
             <span>Daftar Siswa</span>
+          </button>
+          
+          <button 
+            onClick={() => setActiveTab('manage')}
+            className={`w-full flex items-center space-x-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+              activeTab === 'manage' ? 'bg-blue-50 text-blue-700' : 'text-slate-600 hover:bg-slate-50'
+            }`}
+          >
+            <ClipboardList className="w-4 h-4" />
+            <span>Kelola Siswa</span>
           </button>
 
           <button 
